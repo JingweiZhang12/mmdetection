@@ -294,13 +294,15 @@ class PackTrackInputs(BaseTransform):
         'gt_instances_id': 'instances_id'
     }
 
-    def __init__(self,
-                 meta_keys: Optional[dict] = None,
-                 default_meta_keys: tuple = ('img_id', 'img_path', 'ori_shape',
-                                             'img_shape', 'scale_factor',
-                                             'flip', 'flip_direction',
-                                             'frame_id', 'video_id',
-                                             'video_length', 'instances')):
+    # TODO: whether to record original `instances` key.
+
+    def __init__(
+        self,
+        meta_keys: Optional[dict] = None,
+        default_meta_keys: tuple = ('img_id', 'img_path', 'ori_shape',
+                                    'img_shape', 'scale_factor', 'flip',
+                                    'flip_direction', 'frame_id', 'video_id',
+                                    'video_length', 'ori_video_length')):
         self.meta_keys = default_meta_keys
         if meta_keys is not None:
             if isinstance(meta_keys, str):
@@ -401,12 +403,14 @@ class PackTrackInputs(BaseTransform):
 
         track_data_sample = TrackDataSample()
         track_data_sample.video_data_samples = det_data_samples_list
-        if 'key_frame_inds' in results:
+        if 'key_frame_flags' in results:
+            key_frame_flags = np.asarray(results['key_frame_flags'])
+            key_frames_inds = np.where(key_frame_flags)[0].tolist()
+            ref_frames_inds = np.where(~key_frame_flags)[0].tolist()
             track_data_sample.set_metainfo(
-                dict(key_frame_inds=results['key_frame_inds']))
-        if 'ref_frame_inds' in results:
+                dict(key_frame_inds=key_frames_inds))
             track_data_sample.set_metainfo(
-                dict(ref_frame_inds=results['ref_frame_inds']))
+                dict(ref_frame_inds=ref_frames_inds))
 
         packed_results['data_samples'] = track_data_sample
         return packed_results

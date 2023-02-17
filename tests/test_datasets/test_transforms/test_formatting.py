@@ -145,8 +145,7 @@ class TestPackTrackInputs(unittest.TestCase):
             scale_factor=self.scale_factor,
             flip=self.flip,
             img_id=self.img_id,
-            key_frame_inds=[1],
-            ref_frame_inds=[0, 2])
+            key_frame_flags=[False, True, False])
 
         self.results_2 = copy.deepcopy(self.results_1)
         self.gt_ignore_flags = [

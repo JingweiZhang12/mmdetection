@@ -1,10 +1,12 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import copy
 import os.path as osp
-from typing import List, Tuple
+from collections import defaultdict
+from typing import Any, List, Tuple
 
 from mmengine.dataset import BaseDataset
 from mmengine.fileio import FileClient
+from mmengine.logging import print_log
 
 from mmdet.datasets.api_wrappers import COCO
 from mmdet.registry import DATASETS
@@ -172,6 +174,10 @@ class BaseVideoDataset(BaseDataset):
         if self.test_mode:
             return self.data_list
 
+        num_imgs_before_filter = sum(
+            [len(info['images']) for info in self.data_list])
+        num_imgs_after_filter = 0
+
         # obtain images that contain annotations of the required categories
         ids_in_cat = set()
         for i, class_id in enumerate(self.cat_ids):
@@ -196,6 +202,7 @@ class BaseVideoDataset(BaseDataset):
                         continue
                     if min(width, height) >= 32:
                         valid_imgs_data_info.append(data_info)
+                        num_imgs_after_filter += 1
                     else:
                         video_data_info['video_length'] -= 1
                 else:
@@ -206,10 +213,54 @@ class BaseVideoDataset(BaseDataset):
                     if min(width, height) >= self.filter_cfg.get(
                             'min_size', 32):
                         valid_imgs_data_info.append(data_info)
+                        num_imgs_after_filter += 1
                     else:
                         video_data_info['video_length'] -= 1
+            new_data_list.append(video_data_info)
 
+        print_log('The number of samples before and after filtering: '
+                  f'{num_imgs_before_filter} / {num_imgs_after_filter}')
         return new_data_list
+
+    def prepare_data(self, idx) -> Any:
+        """Get data processed by ``self.pipeline``.
+
+        Args:
+            idx (int): The index of ``data_info``.
+
+        Returns:
+            Any: Depends on ``self.pipeline``.
+        """
+        if isinstance(idx, tuple):
+            assert len(idx) == 2, 'The length of idx must be 2: '
+            '(video_index, frame_index)'
+            video_idx, frame_idx = idx[0], idx[1]
+        else:
+            video_idx, frame_idx = idx, None
+
+        data_info = self.get_data_info(video_idx)
+        if self.test_mode:
+            # Support two test_mode: frame-level and video-level
+            final_data_info = defaultdict(list)
+            if frame_idx is None:
+                frames_idx_list = list(range(data_info['video_length']))
+            else:
+                frames_idx_list = [frame_idx]
+            for index in frames_idx_list:
+                frame_ann = data_info['images'][index]
+                frame_ann['video_id'] = data_info['video_id']
+                # Collate data_list (list of dict to dict of list)
+                for key, value in frame_ann.items():
+                    final_data_info[key].append(value)
+                # copy the info in video-level into img-level
+                final_data_info['ori_video_length'].append(
+                    data_info['video_length'])
+
+            final_data_info['video_length'] = [len(frames_idx_list)
+                                               ] * len(frames_idx_list)
+            return self.pipeline(final_data_info)
+        else:
+            return self.pipeline(data_info)
 
     def get_cat_ids(self, idx: int) -> List[int]:
         """Get category ids by index.

@@ -51,7 +51,7 @@ class TestUniformSample(unittest.TestCase):
 
     def test_uniform_sample(self):
         sampler = UniformSample(
-            num_ref_img=2, frame_range=[-1, 1], filter_key_img=True)
+            num_ref_imgs=2, frame_range=[-1, 1], filter_key_img=True)
         results = sampler(self.video_infos)
         assert isinstance(results, dict)
         for key in self.info_keys:
@@ -75,18 +75,17 @@ class TestUniformSample(unittest.TestCase):
 
         # test the filter_key_img and the correctness of returned frame index
         sampler = UniformSample(
-            num_ref_img=2, frame_range=[0, 1], filter_key_img=False)
+            num_ref_imgs=2, frame_range=[0, 1], filter_key_img=False)
         results = sampler(self.video_infos)
         assert 4 in results['img_id'] and results['img_id'].count(4) == 2
         assert 5 in results['img_id'] and results['img_id'].count(5) == 1
-        assert results['key_frames_inds'] == [0]
-        assert results['ref_frames_inds'] == [1, 2]
+        assert results['key_frame_flags'] == [True, False, False]
 
     def test_repr(self):
         transform = UniformSample(
-            num_ref_img=2, frame_range=10, filter_key_img=True)
+            num_ref_imgs=2, frame_range=10, filter_key_img=True)
         self.assertEqual(
             repr(transform),
-            ('UniformSample(num_ref_img=2, '
+            ('UniformSample(num_ref_imgs=2, '
              'frame_range=[-10, 10], filter_key_img=True, '
              "collect_video_keys=['video_id', 'video_length'])"))

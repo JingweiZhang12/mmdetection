@@ -12,7 +12,7 @@ from .instaboost import InstaBoost
 from .loading import (FilterAnnotations, InferencerLoader, LoadAnnotations,
                       LoadEmptyAnnotations, LoadImageFromNDArray,
                       LoadMultiChannelImageFromFiles, LoadPanopticAnnotations,
-                      LoadProposals)
+                      LoadProposals, LoadTrackAnnotations)
 from .transforms import (Albu, CachedMixUp, CachedMosaic, CopyPaste, CutOut,
                          Expand, FixShapeResize, MinIoURandomCrop, MixUp,
                          Mosaic, Pad, PhotoMetricDistortion, RandomAffine,
@@ -35,5 +35,5 @@ __all__ = [
     'AutoContrast', 'Invert', 'MultiBranch', 'RandomErasing',
     'LoadEmptyAnnotations', 'RandomOrder', 'CachedMosaic', 'CachedMixUp',
     'FixShapeResize', 'ProposalBroadcaster', 'InferencerLoader',
-    'PackTrackInputs', 'UniformSample'
+    'PackTrackInputs', 'UniformSample', 'LoadTrackAnnotations'
 ]

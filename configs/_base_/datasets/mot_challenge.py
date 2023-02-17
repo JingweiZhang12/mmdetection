@@ -5,6 +5,11 @@ data_root = 'data/MOT17/'
 # data pipeline
 train_pipeline = [
     dict(
+        type='UniformSample',
+        num_ref_imgs=1,
+        frame_range=10,
+        filter_key_img=True),
+    dict(
         type='TransformBroadcaster',
         share_random_params=True,
         transforms=[
@@ -33,14 +38,18 @@ train_pipeline = [
         transforms=[
             dict(type='RandomFlip', prob=0.5),
         ]),
-    dict(type='PackTrackInputs', ref_prefix='ref', num_key_frames=1)
+    dict(type='PackTrackInputs')
 ]
 
 test_pipeline = [
-    dict(type='LoadImageFromFile'),
-    dict(type='LoadTrackAnnotations', with_instance_id=True),
-    dict(type='Resize', scale=(1088, 1088), keep_ratio=True),
-    dict(type='PackTrackInputs', pack_single_img=True)
+    dict(
+        type='TransformBroadcaster',
+        transforms=[
+            dict(type='LoadImageFromFile'),
+            dict(type='LoadTrackAnnotations', with_instance_id=True),
+            dict(type='Resize', scale=(1088, 1088), keep_ratio=True)
+        ]),
+    dict(type='PackTrackInputs')
 ]
 
 # dataloader
@@ -57,11 +66,6 @@ train_dataloader = dict(
         ann_file='annotations/half-train_cocoformat.json',
         data_prefix=dict(img_path='train'),
         metainfo=dict(classes=('pedestrian', )),
-        ref_img_sampler=dict(
-            num_ref_imgs=1,
-            frame_range=10,
-            filter_key_img=True,
-            method='uniform'),
         pipeline=train_pipeline))
 val_dataloader = dict(
     batch_size=1,
