@@ -252,9 +252,6 @@ class BaseVideoDataset(BaseDataset):
                 # Collate data_list (list of dict to dict of list)
                 for key, value in frame_ann.items():
                     final_data_info[key].append(value)
-                # copy the info in video-level into img-level
-                final_data_info['ori_video_length'].append(
-                    data_info['video_length'])
 
             final_data_info['video_length'] = [len(frames_idx_list)
                                                ] * len(frames_idx_list)
