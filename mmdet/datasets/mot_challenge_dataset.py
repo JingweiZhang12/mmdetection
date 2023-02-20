@@ -14,7 +14,8 @@ class MOTChallengeDataset(BaseVideoDataset):
         visibility_thr (float, optional): The minimum visibility
             for the objects during training. Default to -1.
         detection_file (str, optional): The path of the public
-            detection file. Default to None.
+            detection file in the dataset. Generally, we use the private
+            detector and this argument is not used. Default to None.
     """
 
     METAINFO = {

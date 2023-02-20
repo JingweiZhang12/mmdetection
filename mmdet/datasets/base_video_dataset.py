@@ -262,19 +262,24 @@ class BaseVideoDataset(BaseDataset):
         else:
             return self.pipeline(data_info)
 
-    def get_cat_ids(self, idx: int) -> List[int]:
-        """Get category ids by index.
+    def get_cat_ids(self, video_idx: int, frame_idx: int) -> List[int]:
+        """Following image detection, we provide this interface function. Get
+        category ids by video index and frame index.
 
         Args:
-            idx (int): Index of data.
+            video_idx (int): Index of video.
+            frame_idx (int): Index of frame.
 
         Returns:
-            List[int]: All categories in the image of specified index.
+            List[int]: All categories in the image of specified video index
+            and frame index.
         """
-
-        instances = self.get_data_info(idx)['instances']
+        instances = self.get_data_info(
+            video_idx)['images'][frame_idx]['instances']
         return [instance['bbox_label'] for instance in instances]
 
-    def get_num_imgs(self):
+    @property
+    def num_all_imgs(self):
+        """Get the number of all the images in this video dataset."""
         return sum(
             [len(self.get_data_info(i)['images']) for i in range(len(self))])
