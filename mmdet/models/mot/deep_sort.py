@@ -6,11 +6,11 @@ from torch import Tensor
 
 from mmdet.structures import SampleTrackList
 from mmdet.utils import OptConfigType
-from .base import BaseMultiObjectTracker
+from .base import BaseMOTModel
 
 
 @MODELS.register_module()
-class DeepSORT(BaseMultiObjectTracker):
+class DeepSORT(BaseMOTModel):
     """Simple online and realtime tracking with a deep association metric.
 
     Details can be found at `DeepSORT<https://arxiv.org/abs/1703.07402>`_.

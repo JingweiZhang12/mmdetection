@@ -6,11 +6,11 @@ from torch import Tensor
 from mmdet.registry import MODELS
 from mmdet.structures import SampleTrackList
 from mmdet.utils import OptConfigType, OptMultiConfig
-from .base import BaseMultiObjectTracker
+from .base import BaseMOTModel
 
 
 @MODELS.register_module()
-class QDTrack(BaseMultiObjectTracker):
+class QDTrack(BaseMOTModel):
     """Quasi-Dense Similarity Learning for Multiple Object Tracking.
 
     This multi object tracker is the implementation of `QDTrack

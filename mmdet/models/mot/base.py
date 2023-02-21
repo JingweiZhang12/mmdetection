@@ -9,7 +9,7 @@ from mmdet.structures import OptSampleTrackList, SampleTrackList
 from mmdet.utils import OptConfigType, OptMultiConfig
 
 
-class BaseMultiObjectTracker(BaseModel, metaclass=ABCMeta):
+class BaseMOTModel(BaseModel, metaclass=ABCMeta):
     """Base class for multiple object tracking.
 
     Args:
