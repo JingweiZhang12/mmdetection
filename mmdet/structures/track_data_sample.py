@@ -1,5 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from typing import List, Optional
+from typing import List, Optional, Sequence
 
 from mmengine.structures import BaseDataElement
 
@@ -14,6 +14,8 @@ class TrackDataSample(BaseDataElement):
 
     @video_data_samples.setter
     def video_data_samples(self, value: List[DetDataSample]):
+        if isinstance(value, DetDataSample):
+            value = [value]
         assert isinstance(value, list), 'video_data_samples must be a list'
         assert isinstance(
             value[0], DetDataSample
@@ -30,15 +32,19 @@ class TrackDataSample(BaseDataElement):
         return self._video_data_samples[index]
 
     def get_key_frames(self):
-        assert hasattr(self, 'key_frames_inds'), 'key_frames_inds not set'
+        assert hasattr(self, 'key_frames_inds'), \
+            'key_frames_inds not set'
+        assert isinstance(self.key_frames_inds, Sequence)
         key_frames_info = []
         for index in self.key_frames_inds:
             key_frames_info.append(self[index])
         return key_frames_info
 
     def get_ref_frames(self):
-        assert hasattr(self, 'ref_frames_inds'), 'ref_frames_inds not set'
+        assert hasattr(self, 'ref_frames_inds'), \
+            'ref_frames_inds not set'
         ref_frames_info = []
+        assert isinstance(self.ref_frames_inds, Sequence)
         for index in self.ref_frames_inds:
             ref_frames_info.append(self[index])
         return ref_frames_info
