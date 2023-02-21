@@ -47,5 +47,6 @@ class TrackDataSample(BaseDataElement):
         return len(self._video_data_samples) if hasattr(
             self, '_video_data_samples') else 0
 
+
 SampleTrackList = List[TrackDataSample]
 OptSampleTrackList = Optional[SampleTrackList]

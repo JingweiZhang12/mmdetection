@@ -3,15 +3,15 @@ from typing import List, Tuple
 
 import numpy as np
 import torch
-from mmdet.structures.bbox import bbox_overlaps
 from mmengine.structures import InstanceData
+from mmtrack.structures.bbox import bbox_xyxy_to_cxcyah
+from mmtrack.utils import OptConfigType, imrenormalize
 from motmetrics.lap import linear_sum_assignment
 from torch import Tensor
 
 from mmdet.registry import MODELS
 from mmdet.structures import DetDataSample
-from mmtrack.structures.bbox import bbox_xyxy_to_cxcyah
-from mmtrack.utils import OptConfigType, imrenormalize
+from mmdet.structures.bbox import bbox_overlaps
 from .base_tracker import BaseTracker
 
 

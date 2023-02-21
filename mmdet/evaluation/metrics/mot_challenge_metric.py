@@ -18,6 +18,7 @@ from mmengine.logging import MMLogger
 from mmdet.registry import METRICS
 from .base_video_metric import BaseVideoMetric
 
+
 def get_tmpdir() -> str:
     """return the same tmpdir for all processes."""
     rank, world_size = get_dist_info()
@@ -133,9 +134,9 @@ class MOTChallengeMetrics(BaseVideoMetric):
                 contain annotations and predictions.
         """
         for data_sample in data_samples:
-            data_sample = data_sample["video_data_samples"]
+            data_sample = data_sample['video_data_samples']
             video_len = len(data_sample)
-            
+
             for frame_id in range(video_len):
                 img_data_sample = data_sample[frame_id].to_dict()
                 # load basic info
@@ -149,7 +150,8 @@ class MOTChallengeMetrics(BaseVideoMetric):
                     gt_tracks = [
                         np.array([
                             frame_id + 1, gt_instances[i]['instance_id'],
-                            gt_instances[i]['bbox'][0], gt_instances[i]['bbox'][1],
+                            gt_instances[i]['bbox'][0],
+                            gt_instances[i]['bbox'][1],
                             gt_instances[i]['bbox'][2] -
                             gt_instances[i]['bbox'][0],
                             gt_instances[i]['bbox'][3] -
@@ -170,9 +172,9 @@ class MOTChallengeMetrics(BaseVideoMetric):
                         pred_instances['bboxes'][i][0].cpu(),
                         pred_instances['bboxes'][i][1].cpu(),
                         (pred_instances['bboxes'][i][2] -
-                        pred_instances['bboxes'][i][0]).cpu(),
+                         pred_instances['bboxes'][i][0]).cpu(),
                         (pred_instances['bboxes'][i][3] -
-                        pred_instances['bboxes'][i][1]).cpu(),
+                         pred_instances['bboxes'][i][1]).cpu(),
                         pred_instances['scores'][i].cpu()
                     ]) for i in range(len(pred_instances['instances_id']))
                 ]

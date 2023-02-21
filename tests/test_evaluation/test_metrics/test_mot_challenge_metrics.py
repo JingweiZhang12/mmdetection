@@ -1,13 +1,13 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+import copy
 import os
 from unittest import TestCase
-import copy 
+
 import torch
-from mmengine.structures import InstanceData
-from mmengine.structures import BaseDataElement
+from mmengine.structures import BaseDataElement, InstanceData
 
 from mmdet.evaluation import MOTChallengeMetrics
-from mmdet.structures import TrackDataSample, DetDataSample
+from mmdet.structures import DetDataSample, TrackDataSample
 
 
 class TestMOTChallengeMetrics(TestCase):
@@ -52,19 +52,23 @@ class TestMOTChallengeMetrics(TestCase):
         img_data_sample = DetDataSample()
         img_data_sample.pred_track_instances = pred_instances
         img_data_sample.instances = instances
-        img_data_sample.set_metainfo(dict(
-            frame_id=0,
-            video_length=2,
-            img_id=1,
-            img_path=f'xxx{sep}MOT17-09-DPM{sep}img1{sep}000001.jpg',))
+        img_data_sample.set_metainfo(
+            dict(
+                frame_id=0,
+                video_length=2,
+                img_id=1,
+                img_path=f'xxx{sep}MOT17-09-DPM{sep}img1{sep}000001.jpg',
+            ))
         img_data_sample_2 = DetDataSample()
         img_data_sample_2.pred_track_instances = pred_instances_2
         img_data_sample_2.instances = instances_2
-        img_data_sample_2.set_metainfo(dict(
-            frame_id=1,
-            video_length=2,
-            img_id=2,
-            img_path=f'xxx{sep}MOT17-09-DPM{sep}img1{sep}000002.jpg',))
+        img_data_sample_2.set_metainfo(
+            dict(
+                frame_id=1,
+                video_length=2,
+                img_id=2,
+                img_path=f'xxx{sep}MOT17-09-DPM{sep}img1{sep}000002.jpg',
+            ))
         track_data_sample = TrackDataSample()
         track_data_sample.video_data_samples = [
             img_data_sample, img_data_sample_2

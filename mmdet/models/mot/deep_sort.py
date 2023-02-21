@@ -1,9 +1,9 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from typing import Dict, Optional
-
-from torch import Tensor
+from typing import Optional
 
 from mmtrack.registry import MODELS, TASK_UTILS
+from torch import Tensor
+
 from mmdet.structures import SampleTrackList
 from mmdet.utils import OptConfigType
 from .base import BaseMultiObjectTracker
@@ -50,7 +50,7 @@ class DeepSORT(BaseMultiObjectTracker):
 
         self.preprocess_cfg = data_preprocessor
 
-    def loss(self, inputs: Tensor, data_samples: SampleTrackList
+    def loss(self, inputs: Tensor, data_samples: SampleTrackList,
              **kwargs) -> dict:
         """Calculate losses from a batch of inputs and data samples."""
         raise NotImplementedError(
@@ -62,13 +62,13 @@ class DeepSORT(BaseMultiObjectTracker):
                 data_samples: SampleTrackList,
                 rescale: bool = True,
                 **kwargs) -> SampleTrackList:
-        """Predict results from a video and data samples with post-
-        processing.
+        """Predict results from a video and data samples with post- processing.
 
         Args:
             inputs (Tensor): of shape (N, T, C, H, W) encoding
-                input images. The N denotes batch size.The T denotes the number of
-                key frames and reference frames.
+                input images. The N denotes batch size.
+                The T denotes the number of key frames
+                and reference frames.
             data_samples (list[:obj:`TrackDataSample`]): The batch
                 data samples. It usually includes information such
                 as `gt_instance`.
@@ -102,7 +102,7 @@ class DeepSORT(BaseMultiObjectTracker):
             assert len(det_results) == 1, 'Batch inference is not supported.'
             img_data_sample.pred_det_instances = \
                 det_results[0].pred_instances.clone()
-            
+
             pred_track_instances = self.tracker.track(
                 model=self,
                 img=img,

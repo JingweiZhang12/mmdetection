@@ -1,4 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+from .base_video_metric import BaseVideoMetric
 from .cityscapes_metric import CityScapesMetric
 from .coco_metric import CocoMetric
 from .coco_occluded_metric import CocoOccludedSeparatedMetric
@@ -7,10 +8,9 @@ from .crowdhuman_metric import CrowdHumanMetric
 from .dump_det_results import DumpDetResults
 from .dump_proposals_metric import DumpProposals
 from .lvis_metric import LVISMetric
+from .mot_challenge_metric import MOTChallengeMetrics
 from .openimages_metric import OpenImagesMetric
 from .voc_metric import VOCMetric
-from .base_video_metric import BaseVideoMetric
-from .mot_challenge_metric import MOTChallengeMetrics
 
 __all__ = [
     'CityScapesMetric', 'CocoMetric', 'CocoPanopticMetric', 'OpenImagesMetric',

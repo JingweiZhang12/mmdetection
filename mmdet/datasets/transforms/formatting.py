@@ -296,14 +296,14 @@ class PackTrackInputs(BaseTransform):
 
     # TODO: whether to record original `instances` key.
 
-    def __init__(
-        self,
-        meta_keys: Optional[dict] = None,
-        default_meta_keys: tuple = ('img_id', 'img_path', 'ori_shape',
-                                    'img_shape', 'scale_factor', 'flip',
-                                    'flip_direction', 'frame_id', 'video_id',
-                                    'video_length', 'ori_video_length',
-                                    'instances')):
+    def __init__(self,
+                 meta_keys: Optional[dict] = None,
+                 default_meta_keys: tuple = ('img_id', 'img_path', 'ori_shape',
+                                             'img_shape', 'scale_factor',
+                                             'flip', 'flip_direction',
+                                             'frame_id', 'video_id',
+                                             'video_length',
+                                             'ori_video_length', 'instances')):
         self.meta_keys = default_meta_keys
         if meta_keys is not None:
             if isinstance(meta_keys, str):

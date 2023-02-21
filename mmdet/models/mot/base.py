@@ -5,7 +5,7 @@ from typing import Dict, List, Tuple, Union
 from mmengine.model import BaseModel
 from torch import Tensor
 
-from mmdet.structures import SampleTrackList, OptSampleTrackList
+from mmdet.structures import OptSampleTrackList, SampleTrackList
 from mmdet.utils import OptConfigType, OptMultiConfig
 
 
@@ -67,9 +67,9 @@ class BaseMultiObjectTracker(BaseModel, metaclass=ABCMeta):
 
     def forward(self,
                 inputs: Dict[str, Tensor],
-                data_samples: OptSampleTrackList= None,
+                data_samples: OptSampleTrackList = None,
                 mode: str = 'predict',
-                **kwargs) :
+                **kwargs):
         """The unified entry for a forward process in both training and test.
 
         The method should accept three modes: "tensor", "predict" and "loss":

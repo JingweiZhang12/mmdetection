@@ -1,11 +1,11 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from typing import Dict, Optional
+from typing import Optional
 
 from torch import Tensor
 
 from mmdet.registry import MODELS
-from mmdet.utils import OptConfigType, OptMultiConfig
 from mmdet.structures import SampleTrackList
+from mmdet.utils import OptConfigType, OptMultiConfig
 from .base import BaseMultiObjectTracker
 
 
@@ -55,13 +55,13 @@ class QDTrack(BaseMultiObjectTracker):
                 data_samples: SampleTrackList,
                 rescale: bool = True,
                 **kwargs) -> SampleTrackList:
-        """Predict results from a video and data samples with post-
-        processing.
+        """Predict results from a video and data samples with post- processing.
 
         Args:
             inputs (Tensor): of shape (N, T, C, H, W) encoding
-                input images. The N denotes batch size.The T denotes the number of
-                key frames and reference frames.
+                input images. The N denotes batch size.
+                The T denotes the number of key frames
+                and reference frames.
             data_samples (list[:obj:`TrackDataSample`]): The batch
                 data samples. It usually includes information such
                 as `gt_instance`.
@@ -79,17 +79,18 @@ class QDTrack(BaseMultiObjectTracker):
         assert img.size(0) == 1, \
             'QDTrack inference only support 1 batch size per gpu for now.'
         img = img[:, 0]
-    
+
         assert len(data_samples) == 1, \
             'QDTrack only support 1 batch size per gpu for now.'
-            
-        track_data_sample = data_samples[0]        
+
+        track_data_sample = data_samples[0]
         video_len = len(track_data_sample)
 
         for frame_id in range(video_len):
             img_data_sample = track_data_sample[frame_id]
             x = self.detector.extract_feat(img)
-            rpn_results_list = self.detector.rpn_head.predict(x, [img_data_sample])
+            rpn_results_list = self.detector.rpn_head.predict(
+                x, [img_data_sample])
             det_results = self.detector.roi_head.predict(
                 x, rpn_results_list, [img_data_sample], rescale=rescale)
             # det_results List[InstanceData]
@@ -105,5 +106,5 @@ class QDTrack(BaseMultiObjectTracker):
             img_data_sample.pred_instances = frame_pred_track_instances
 
         return [track_data_sample]
-    
+
     # TODO: QDTrack loss
