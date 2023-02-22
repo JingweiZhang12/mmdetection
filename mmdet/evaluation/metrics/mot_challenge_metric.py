@@ -133,12 +133,12 @@ class MOTChallengeMetrics(BaseVideoMetric):
             data_samples (Sequence[dict]): A batch of data samples that
                 contain annotations and predictions.
         """
-        for data_sample in data_samples:
-            data_sample = data_sample['video_data_samples']
-            video_len = len(data_sample)
+        for track_data_sample in data_samples:
+            video_data_samples = track_data_sample['video_data_samples']
+            video_len = len(video_data_samples)
 
             for frame_id in range(video_len):
-                img_data_sample = data_sample[frame_id].to_dict()
+                img_data_sample = video_data_samples[frame_id].to_dict()
                 # load basic info
                 video = img_data_sample['img_path'].split(os.sep)[-3]
                 if self.seq_info[video]['seq_length'] == -1:
