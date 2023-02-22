@@ -126,9 +126,9 @@ class SORTTracker(BaseTracker):
             ``scores`` and ``instances_id``.
         """
         metainfo = data_sample.metainfo
-        bboxes = data_sample.pred_det_instances.bboxes
-        labels = data_sample.pred_det_instances.labels
-        scores = data_sample.pred_det_instances.scores
+        bboxes = data_sample.pred_instances.bboxes
+        labels = data_sample.pred_instances.labels
+        scores = data_sample.pred_instances.scores
 
         frame_id = metainfo.get('frame_id', -1)
         if frame_id == 0:

@@ -8,7 +8,7 @@ from mmengine.fileio import FileClient
 from mmdet.datasets.api_wrappers import COCO
 from mmdet.registry import METRICS
 from mmdet.structures.mask import encode_mask_results
-from .base_video_metrics import collect_tracking_results
+from .base_video_metric import collect_tracking_results
 from .coco_metric import CocoMetric
 
 

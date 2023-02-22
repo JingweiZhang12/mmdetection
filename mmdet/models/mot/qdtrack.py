@@ -83,6 +83,7 @@ class QDTrack(BaseMOTModel):
 
         track_data_sample = data_samples[0]
         video_len = len(track_data_sample)
+        self.tracker.reset()
 
         for frame_id in range(video_len):
             img_data_sample = track_data_sample[frame_id]
@@ -94,7 +95,7 @@ class QDTrack(BaseMOTModel):
             det_results = self.detector.roi_head.predict(
                 x, rpn_results_list, [img_data_sample], rescale=rescale)
             assert len(det_results) == 1, 'Batch inference is not supported.'
-            img_data_sample.pred_instances = det_results[0].clone()
+            img_data_sample.pred_instances = det_results[0]
             frame_pred_track_instances = self.tracker.track(
                 model=self,
                 img=single_img,

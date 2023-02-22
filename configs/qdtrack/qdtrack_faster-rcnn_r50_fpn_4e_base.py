@@ -2,6 +2,15 @@ _base_ = [
     '../_base_/models/faster-rcnn_r50_fpn.py', '../_base_/default_runtime.py'
 ]
 
+default_hooks = dict(logger=dict(type='LoggerHook', interval=1))
+
+# custom hooks
+custom_hooks = [
+    # Synchronize model buffers such as running_mean and running_var in BN
+    # at the end of each epoch
+    dict(type='SyncBuffersHook')
+]
+
 detector = _base_.model
 detector.pop('data_preprocessor')
 
@@ -12,16 +21,11 @@ detector['backbone'].update(
         init_cfg=dict(
             type='Pretrained',
             checkpoint='open-mmlab://detectron2/resnet50_caffe')))
-detector['rpn_head'].update(
-    dict(
-        loss_bbox=dict(type='SmoothL1Loss', beta=1.0 / 9.0, loss_weight=1.0),
-        bbox_coder=dict(
-            type='DeltaXYWHBBoxCoder',
-            target_means=[.0, .0, .0, .0],
-            target_stds=[1.0, 1.0, 1.0, 1.0],
-            clip_border=False)))
-detector['roi_head']['bbox_head'].update(
-    dict(bbox_coder=dict(clip_border=False), num_classes=1))
+detector.rpn_head.loss_bbox.update(
+    dict(type='SmoothL1Loss', beta=1.0 / 9.0, loss_weight=1.0))
+detector.rpn_head.bbox_coder.update(dict(clip_border=False))
+detector.roi_head.bbox_head.update(dict(num_classes=1))
+detector.roi_head.bbox_head.bbox_coder.update(dict(clip_border=False))
 detector['init_cfg'] = dict(
     type='Pretrained',
     checkpoint=  # noqa: E251

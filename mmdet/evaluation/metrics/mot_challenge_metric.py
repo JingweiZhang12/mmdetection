@@ -35,7 +35,7 @@ def get_tmpdir() -> str:
 
 
 @METRICS.register_module()
-class MOTChallengeMetrics(BaseVideoMetric):
+class MOTChallengeMetric(BaseVideoMetric):
     """Evaluation metrics for MOT Challenge.
 
     Args:
