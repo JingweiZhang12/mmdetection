@@ -218,8 +218,9 @@ class BaseVideoDataset(BaseDataset):
                         video_data_info['video_length'] -= 1
             new_data_list.append(video_data_info)
 
-        print_log('The number of samples before and after filtering: '
-                  f'{num_imgs_before_filter} / {num_imgs_after_filter}', 'current')
+        print_log(
+            'The number of samples before and after filtering: '
+            f'{num_imgs_before_filter} / {num_imgs_after_filter}', 'current')
         return new_data_list
 
     def prepare_data(self, idx) -> Any:
