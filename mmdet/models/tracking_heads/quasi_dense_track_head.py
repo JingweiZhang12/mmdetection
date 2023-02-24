@@ -59,16 +59,19 @@ class QuasiDenseTrackHead(RoITrackHead):
         ref_batch_gt_instances = []
         batch_gt_instances_ignore = []
         gt_match_indices_list = []
-        for data_sample in data_samples:
-            batch_gt_instances.append(data_sample.gt_instances)
-            ref_batch_gt_instances.append(data_sample.ref_gt_instances)
-            if 'ignored_instances' in data_sample:
-                batch_gt_instances_ignore.append(data_sample.ignored_instances)
+        for track_data_sample in data_samples:
+            key_data_sample = track_data_sample.get_key_frames()[0]
+            ref_data_sample = track_data_sample.get_ref_frames()[0]
+            batch_gt_instances.append(key_data_sample.gt_instances)
+            ref_batch_gt_instances.append(ref_data_sample.gt_instances)
+            if 'ignored_instances' in key_data_sample:
+                batch_gt_instances_ignore.append(
+                    key_data_sample.ignored_instances)
             else:
                 batch_gt_instances_ignore.append(None)
             # get gt_match_indices
-            ins_ids = data_sample.gt_instances.instances_id.tolist()
-            ref_ins_ids = data_sample.ref_gt_instances.instances_id.tolist()
+            ins_ids = key_data_sample.gt_instances.instances_id.tolist()
+            ref_ins_ids = ref_data_sample.gt_instances.instances_id.tolist()
             match_indices = Tensor([
                 ref_ins_ids.index(i) if (i in ref_ins_ids and i > 0) else -1
                 for i in ins_ids

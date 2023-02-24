@@ -6,7 +6,10 @@ _base_ = [
 # evaluator
 val_evaluator = [
     dict(type='CocoVideoMetric', metric=['bbox'], classwise=True),
-    dict(type='MOTChallengeMetric', metric=['HOTA', 'CLEAR', 'Identity'])
+    dict(
+        type='MOTChallengeMetric',
+        metric=['HOTA', 'CLEAR', 'Identity'],
+        outfile_prefix='results/qdtrack_img_tracking')
 ]
 
 test_evaluator = val_evaluator

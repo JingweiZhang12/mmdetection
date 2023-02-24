@@ -169,10 +169,10 @@ class TestPackTrackInputs(unittest.TestCase):
 
         track_data_sample = track_results['data_samples']
         assert len(track_data_sample) == 3
-        assert 'key_frame_inds' in track_data_sample.metainfo and \
-            track_data_sample.key_frame_inds == [1]
-        assert 'ref_frame_inds' in track_data_sample.metainfo and \
-            track_data_sample.ref_frame_inds == [0, 2]
+        assert 'key_frames_inds' in track_data_sample.metainfo and \
+            track_data_sample.key_frames_inds == [1]
+        assert 'ref_frames_inds' in track_data_sample.metainfo and \
+            track_data_sample.ref_frames_inds == [0, 2]
         for i, data_sample in enumerate(track_data_sample):
             assert data_sample.gt_instances.bboxes.shape == (2, 4)
             assert len(data_sample.gt_instances.masks) == 2

@@ -1,6 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from typing import Dict, Optional, Union
 
+import torch
 from torch import Tensor
 
 from mmdet.registry import MODELS
@@ -83,7 +84,8 @@ class QDTrack(BaseMOTModel):
 
         track_data_sample = data_samples[0]
         video_len = len(track_data_sample)
-        self.tracker.reset()
+        if track_data_sample[0].frame_id == 0:
+            self.tracker.reset()
 
         for frame_id in range(video_len):
             img_data_sample = track_data_sample[frame_id]
@@ -109,4 +111,63 @@ class QDTrack(BaseMOTModel):
     def loss(self, inputs: Dict[str, Tensor], data_samples: TrackSampleList,
              **kwargs) -> Union[dict, tuple]:
         """Calculate losses from a batch of inputs and data samples."""
-        pass
+        # modify the inputs shape to fit mmdet
+        assert inputs.dim() == 5, 'The img must be 5D Tensor (N, T, C, H, W).'
+        assert inputs.size(1) == 2, \
+            'QDTrack can only have 1 key frame and 1 reference frame.'
+
+        # split the data_samples into two aspects: key frames and reference
+        # frames
+        ref_data_samples, key_data_samples = [], []
+        key_frame_inds, ref_frame_inds = [], []
+        # set cat_id of gt_labels to 0 in RPN
+        for track_data_sample in data_samples:
+            key_frame_inds.append(track_data_sample.key_frames_inds[0])
+            ref_frame_inds.append(track_data_sample.ref_frames_inds[0])
+            key_data_sample = track_data_sample.get_key_frames()[0]
+            key_data_sample.gt_instances.labels = \
+                torch.zeros_like(key_data_sample.gt_instances.labels)
+            key_data_samples.append(key_data_sample)
+            ref_data_sample = track_data_sample.get_ref_frames()[0]
+            ref_data_samples.append(ref_data_sample)
+
+        key_frame_inds = torch.tensor(key_frame_inds, dtype=torch.int64)
+        ref_frame_inds = torch.tensor(ref_frame_inds, dtype=torch.int64)
+        batch_inds = torch.arange(len(inputs))
+        key_imgs = inputs[batch_inds, key_frame_inds]
+        ref_imgs = inputs[batch_inds, ref_frame_inds]
+
+        x = self.detector.extract_feat(key_imgs)
+        ref_x = self.detector.extract_feat(ref_imgs)
+
+        losses = dict()
+        # RPN forward and loss
+        assert self.detector.with_rpn, \
+            'QDTrack only support detector with RPN.'
+
+        proposal_cfg = self.detector.train_cfg.get('rpn_proposal',
+                                                   self.detector.test_cfg.rpn)
+        rpn_losses, rpn_results_list = self.detector.rpn_head. \
+            loss_and_predict(x,
+                             key_data_samples,
+                             proposal_cfg=proposal_cfg,
+                             **kwargs)
+        # avoid get same name with roi_head loss
+        keys = rpn_losses.keys()
+        for key in keys:
+            if 'loss' in key and 'rpn' not in key:
+                rpn_losses[f'rpn_{key}'] = rpn_losses.pop(key)
+        losses.update(rpn_losses)
+
+        losses_detect = self.detector.roi_head.loss(x, rpn_results_list,
+                                                    key_data_samples, **kwargs)
+        losses.update(losses_detect)
+
+        ref_rpn_results_list = self.detector.rpn_head.predict(
+            ref_x, ref_data_samples, **kwargs)
+        losses_track = self.track_head.loss(x, ref_x, rpn_results_list,
+                                            ref_rpn_results_list, data_samples,
+                                            **kwargs)
+        losses.update(losses_track)
+
+        return losses

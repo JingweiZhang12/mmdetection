@@ -2,8 +2,7 @@ _base_ = [
     '../_base_/models/faster-rcnn_r50_fpn.py', '../_base_/default_runtime.py'
 ]
 
-default_hooks = dict(logger=dict(type='LoggerHook', interval=1))
-
+default_hooks = dict(logger=dict(type='LoggerHook', interval=50))
 # custom hooks
 custom_hooks = [
     # Synchronize model buffers such as running_mean and running_var in BN
@@ -104,16 +103,11 @@ optim_wrapper = dict(
     clip_grad=dict(max_norm=35, norm_type=2))
 # learning policy
 param_scheduler = [
-    dict(
-        type='mmdet.MultiStepLR',
-        begin=0,
-        end=4,
-        by_epoch=True,
-        milestones=[3])
+    dict(type='MultiStepLR', begin=0, end=4, by_epoch=True, milestones=[3])
 ]
 
 # runtime settings
 train_cfg = dict(type='EpochBasedTrainLoop', max_epochs=4, val_interval=1)
-val_cfg = dict(type='ValLoop')
-test_cfg = dict(type='TestLoop')
-default_hooks = dict(logger=dict(type='LoggerHook', interval=1))
+val_cfg = dict(type='VideoValLoop')
+test_cfg = dict(type='VideoTestLoop')
+del _base_.visualizer
