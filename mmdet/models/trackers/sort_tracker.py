@@ -4,14 +4,14 @@ from typing import List, Tuple
 import numpy as np
 import torch
 from mmengine.structures import InstanceData
-from mmtrack.structures.bbox import bbox_xyxy_to_cxcyah
-from mmtrack.utils import OptConfigType, imrenormalize
 from motmetrics.lap import linear_sum_assignment
 from torch import Tensor
 
 from mmdet.registry import MODELS
 from mmdet.structures import DetDataSample
-from mmdet.structures.bbox import bbox_overlaps
+from mmdet.structures.bbox import bbox_overlaps, bbox_xyxy_to_cxcyah
+from mmdet.utils import OptConfigType
+from ..utils import imrenormalize
 from .base_tracker import BaseTracker
 
 
@@ -126,9 +126,9 @@ class SORTTracker(BaseTracker):
             ``scores`` and ``instances_id``.
         """
         metainfo = data_sample.metainfo
-        bboxes = data_sample.pred_det_instances.bboxes
-        labels = data_sample.pred_det_instances.labels
-        scores = data_sample.pred_det_instances.scores
+        bboxes = data_sample.pred_instances.bboxes
+        labels = data_sample.pred_instances.labels
+        scores = data_sample.pred_instances.scores
 
         frame_id = metainfo.get('frame_id', -1)
         if frame_id == 0:

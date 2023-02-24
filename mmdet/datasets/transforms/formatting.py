@@ -417,14 +417,18 @@ class PackTrackInputs(BaseTransform):
 
         track_data_sample = TrackDataSample()
         track_data_sample.video_data_samples = det_data_samples_list
+        track_data_sample.set_metainfo(
+            dict(
+                ori_video_length=det_data_samples_list[0].ori_video_length,
+                video_length=len(det_data_samples_list)))
         if 'key_frame_flags' in results:
             key_frame_flags = np.asarray(results['key_frame_flags'])
             key_frames_inds = np.where(key_frame_flags)[0].tolist()
             ref_frames_inds = np.where(~key_frame_flags)[0].tolist()
             track_data_sample.set_metainfo(
-                dict(key_frame_inds=key_frames_inds))
+                dict(key_frames_inds=key_frames_inds))
             track_data_sample.set_metainfo(
-                dict(ref_frame_inds=ref_frames_inds))
+                dict(ref_frames_inds=ref_frames_inds))
 
         packed_results['data_samples'] = track_data_sample
         return packed_results

@@ -1,10 +1,10 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from typing import Optional
 
-from mmtrack.registry import MODELS, TASK_UTILS
 from torch import Tensor
 
-from mmdet.structures import SampleTrackList
+from mmdet.registry import MODELS, TASK_UTILS
+from mmdet.structures import TrackSampleList
 from mmdet.utils import OptConfigType
 from .base import BaseMOTModel
 
@@ -50,7 +50,7 @@ class DeepSORT(BaseMOTModel):
 
         self.preprocess_cfg = data_preprocessor
 
-    def loss(self, inputs: Tensor, data_samples: SampleTrackList,
+    def loss(self, inputs: Tensor, data_samples: TrackSampleList,
              **kwargs) -> dict:
         """Calculate losses from a batch of inputs and data samples."""
         raise NotImplementedError(
@@ -59,9 +59,9 @@ class DeepSORT(BaseMOTModel):
 
     def predict(self,
                 inputs: Tensor,
-                data_samples: SampleTrackList,
+                data_samples: TrackSampleList,
                 rescale: bool = True,
-                **kwargs) -> SampleTrackList:
+                **kwargs) -> TrackSampleList:
         """Predict results from a video and data samples with post- processing.
 
         Args:
@@ -77,16 +77,14 @@ class DeepSORT(BaseMOTModel):
                 will fit the scale of original image shape. Defaults to True.
 
         Returns:
-            SampleTrackList: List[TrackDataSample]
+            TrackSampleList: List[TrackDataSample]
             Tracking results of the input videos.
             Each DetDataSample usually contains ``pred_track_instances``.
         """
-        img = inputs
-        assert img.dim() == 5, 'The img must be 5D Tensor (N, T, C, H, W).'
-        assert img.size(0) == 1, \
+        assert inputs.dim() == 5, 'The img must be 5D Tensor (N, T, C, H, W).'
+        assert inputs.size(0) == 1, \
             'SORT/DeepSORT inference only support ' \
             '1 batch size per gpu for now.'
-        img = img[0]
 
         assert len(data_samples) == 1, \
             'SORT/DeepSORT inference only support ' \
@@ -97,17 +95,18 @@ class DeepSORT(BaseMOTModel):
 
         for frame_id in range(video_len):
             img_data_sample = track_data_sample[frame_id]
-            det_results = self.detector.predict(img, [img_data_sample])
-            # det_results List[InstanceData]
+            single_img = inputs[:, frame_id]
+            # det_results List[DetDataSample]
+            det_results = self.detector.predict(single_img, [img_data_sample])
             assert len(det_results) == 1, 'Batch inference is not supported.'
-            img_data_sample.pred_det_instances = \
-                det_results[0].pred_instances.clone()
+            # img_data_sample.pred_instances = \
+            #     det_results[0].pred_instances.clone()
 
             pred_track_instances = self.tracker.track(
                 model=self,
-                img=img,
+                img=single_img,
                 feats=None,
-                data_sample=img_data_sample,
+                data_sample=det_results[0],
                 data_preprocessor=self.preprocess_cfg,
                 rescale=rescale,
                 **kwargs)

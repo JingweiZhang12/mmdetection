@@ -218,8 +218,9 @@ class BaseVideoDataset(BaseDataset):
                         video_data_info['video_length'] -= 1
             new_data_list.append(video_data_info)
 
-        print_log('The number of samples before and after filtering: '
-                  f'{num_imgs_before_filter} / {num_imgs_after_filter}')
+        print_log(
+            'The number of samples before and after filtering: '
+            f'{num_imgs_before_filter} / {num_imgs_after_filter}', 'current')
         return new_data_list
 
     def prepare_data(self, idx) -> Any:
@@ -264,24 +265,41 @@ class BaseVideoDataset(BaseDataset):
         else:
             return self.pipeline(data_info)
 
-    def get_cat_ids(self, video_idx: int, frame_idx: int) -> List[int]:
+    def get_cat_ids(self, index) -> List[int]:
         """Following image detection, we provide this interface function. Get
         category ids by video index and frame index.
 
         Args:
-            video_idx (int): Index of video.
-            frame_idx (int): Index of frame.
+            index: The index of the dataset. It support two kinds of inputs:
+                Tuple:
+                    video_idx (int): Index of video.
+                    frame_idx (int): Index of frame.
+                Int: Index of video.
 
         Returns:
             List[int]: All categories in the image of specified video index
             and frame index.
         """
-        instances = self.get_data_info(
-            video_idx)['images'][frame_idx]['instances']
-        return [instance['bbox_label'] for instance in instances]
+        if isinstance(index, tuple):
+            assert len(
+                index
+            ) == 2, f'Expect the length of index is 2, but got {len(index)}'
+            video_idx, frame_idx = index
+            instances = self.get_data_info(
+                video_idx)['images'][frame_idx]['instances']
+            return [instance['bbox_label'] for instance in instances]
+        else:
+            cat_ids = []
+            for img in self.get_data_info(index)['images']:
+                for instance in img['instances']:
+                    cat_ids.append(instance['bbox_label'])
+            return cat_ids
 
     @property
     def num_all_imgs(self):
         """Get the number of all the images in this video dataset."""
         return sum(
             [len(self.get_data_info(i)['images']) for i in range(len(self))])
+
+    def get_len_per_video(self, idx):
+        return len(self.get_data_info(idx)['images'])

@@ -6,17 +6,17 @@ from unittest import TestCase
 import torch
 from mmengine.structures import BaseDataElement, InstanceData
 
-from mmdet.evaluation import MOTChallengeMetrics
+from mmdet.evaluation import MOTChallengeMetric
 from mmdet.structures import DetDataSample, TrackDataSample
 
 
-class TestMOTChallengeMetrics(TestCase):
+class TestMOTChallengeMetric(TestCase):
 
     def test_init(self):
         with self.assertRaisesRegex(KeyError, 'metric unknown is not'):
-            MOTChallengeMetrics(metric='unknown')
+            MOTChallengeMetric(metric='unknown')
         with self.assertRaises(AssertionError):
-            MOTChallengeMetrics(benchmark='MOT21')
+            MOTChallengeMetric(benchmark='MOT21')
 
     @staticmethod
     def _get_predictions_demo():
@@ -82,7 +82,7 @@ class TestMOTChallengeMetrics(TestCase):
 
     def _test_evaluate(self, format_only):
         """Test using the metric in the same way as Evaluator."""
-        metric = MOTChallengeMetrics(
+        metric = MOTChallengeMetric(
             metric=['HOTA', 'CLEAR', 'Identity'], format_only=format_only)
         metric.dataset_meta = {'classes': ('pedestrian', )}
         data_batch = dict(input=None, data_samples=None)

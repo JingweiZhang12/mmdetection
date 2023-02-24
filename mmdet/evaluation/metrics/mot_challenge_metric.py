@@ -35,7 +35,7 @@ def get_tmpdir() -> str:
 
 
 @METRICS.register_module()
-class MOTChallengeMetrics(BaseVideoMetric):
+class MOTChallengeMetric(BaseVideoMetric):
     """Evaluation metrics for MOT Challenge.
 
     Args:
@@ -133,12 +133,12 @@ class MOTChallengeMetrics(BaseVideoMetric):
             data_samples (Sequence[dict]): A batch of data samples that
                 contain annotations and predictions.
         """
-        for data_sample in data_samples:
-            data_sample = data_sample['video_data_samples']
-            video_len = len(data_sample)
+        for track_data_sample in data_samples:
+            video_data_samples = track_data_sample['video_data_samples']
+            video_len = len(video_data_samples)
 
             for frame_id in range(video_len):
-                img_data_sample = data_sample[frame_id].to_dict()
+                img_data_sample = video_data_samples[frame_id].to_dict()
                 # load basic info
                 video = img_data_sample['img_path'].split(os.sep)[-3]
                 if self.seq_info[video]['seq_length'] == -1:
@@ -146,7 +146,7 @@ class MOTChallengeMetrics(BaseVideoMetric):
 
                 # load gts
                 if 'instances' in img_data_sample:
-                    gt_instances = img_data_sample['gt_instances']
+                    gt_instances = img_data_sample['instances']
                     gt_tracks = [
                         np.array([
                             frame_id + 1, gt_instances[i]['instance_id'],
@@ -164,7 +164,7 @@ class MOTChallengeMetrics(BaseVideoMetric):
                     self.seq_info[video]['gt_tracks'].extend(gt_tracks)
 
                 # load predictions
-                assert 'pred_track_instances' in data_sample
+                assert 'pred_track_instances' in img_data_sample
                 pred_instances = img_data_sample['pred_track_instances']
                 pred_tracks = [
                     np.array([
