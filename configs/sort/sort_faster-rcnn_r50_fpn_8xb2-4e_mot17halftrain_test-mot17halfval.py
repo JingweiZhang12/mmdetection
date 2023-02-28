@@ -41,5 +41,5 @@ model = dict(
 train_dataloader = None
 
 train_cfg = None
-val_cfg = dict(type='ValLoop')
-test_cfg = dict(type='TestLoop')
+val_cfg = dict(type='VideoValLoop')
+test_cfg = dict(type='VideoTestLoop')

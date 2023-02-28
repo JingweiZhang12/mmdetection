@@ -5,10 +5,11 @@ import unittest
 
 import numpy as np
 import torch
-from mmengine.structures import InstanceData, PixelData
+from mmengine.structures import InstanceData, LabelData, PixelData
 
-from mmdet.datasets.transforms import PackDetInputs, PackTrackInputs
-from mmdet.structures import DetDataSample
+from mmdet.datasets.transforms import (PackDetInputs, PackReIDInputs,
+                                       PackTrackInputs)
+from mmdet.structures import DetDataSample, ReIDDataSample
 from mmdet.structures.mask import BitmapMasks
 
 
@@ -124,6 +125,7 @@ class TestPackTrackInputs(unittest.TestCase):
         self.flip = [False] * 3
         self.ori_shape = [(self.H, self.W)] * 3
         self.img_id = [0, 1, 2]
+        self.ori_video_length = [256] * 3
         self.results_1 = dict(
             img=[self.img.copy(),
                  self.img.copy(),
@@ -145,6 +147,7 @@ class TestPackTrackInputs(unittest.TestCase):
             scale_factor=self.scale_factor,
             flip=self.flip,
             img_id=self.img_id,
+            ori_video_length=self.ori_video_length,
             key_frame_flags=[False, True, False])
 
         self.results_2 = copy.deepcopy(self.results_1)
@@ -204,3 +207,42 @@ class TestPackTrackInputs(unittest.TestCase):
                     self.gt_instances_id[i][valid_mask]).all()
             for key in self.meta_keys:
                 assert data_sample.metainfo[key] == getattr(self, key)[i]
+
+
+class TestPackReIDInputs(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.results = dict(
+            img=np.random.randn(256, 128, 3),
+            gt_label=0,
+            img_path='',
+            ori_shape=(128, 128),
+            img_shape=(256, 128),
+            scale=(128, 256),
+            scale_factor=(1., 2.),
+            flip=False,
+            flip_direction=None)
+        cls.pack_reid_inputs = PackReIDInputs(
+            meta_keys=('flip', 'flip_direction'))
+
+    def test_transform(self):
+        results = self.pack_reid_inputs(self.results)
+        self.assertIn('inputs', results)
+        self.assertIsInstance(results['inputs'], torch.Tensor)
+        self.assertIn('data_samples', results)
+        data_sample = results['data_samples']
+        self.assertIsInstance(data_sample, ReIDDataSample)
+        self.assertIsInstance(data_sample.gt_label, LabelData)
+        self.assertEqual(data_sample.img_path, '')
+        self.assertEqual(data_sample.ori_shape, (128, 128))
+        self.assertEqual(data_sample.img_shape, (256, 128))
+        self.assertEqual(data_sample.scale, (128, 256))
+        self.assertEqual(data_sample.scale_factor, (1., 2.))
+        self.assertEqual(data_sample.flip, False)
+        self.assertIsNone(data_sample.flip_direction)
+
+    def test_repr(self):
+        self.assertEqual(
+            repr(self.pack_reid_inputs),
+            f'PackReIDInputs(meta_keys={self.pack_reid_inputs.meta_keys})')

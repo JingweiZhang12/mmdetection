@@ -99,8 +99,6 @@ class DeepSORT(BaseMOTModel):
             # det_results List[DetDataSample]
             det_results = self.detector.predict(single_img, [img_data_sample])
             assert len(det_results) == 1, 'Batch inference is not supported.'
-            # img_data_sample.pred_instances = \
-            #     det_results[0].pred_instances.clone()
 
             pred_track_instances = self.tracker.track(
                 model=self,
