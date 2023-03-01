@@ -2,7 +2,14 @@ _base_ = [
     '../_base_/models/faster-rcnn_r50_fpn.py', '../_base_/default_runtime.py'
 ]
 
-default_hooks = dict(logger=dict(type='LoggerHook', interval=50))
+default_hooks = dict(
+    logger=dict(type='LoggerHook', interval=50),
+    visualization=dict(type='TrackVisualizationHook', draw=False))
+
+vis_backends = [dict(type='LocalVisBackend')]
+visualizer = dict(
+    type='TrackLocalVisualizer', vis_backends=vis_backends, name='visualizer')
+
 # custom hooks
 custom_hooks = [
     # Synchronize model buffers such as running_mean and running_var in BN
