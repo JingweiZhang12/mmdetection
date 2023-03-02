@@ -73,7 +73,7 @@ val_dataloader = dict(
     num_workers=2,
     persistent_workers=True,
     drop_last=False,
-    # sampler=dict(type='DefaultSampler', shuffle=False),
+    # sampler=dict(type='DefaultSampler', shuffle=False, round_up=False),
     sampler=dict(type='ImgQuotaSampler'),
     dataset=dict(
         type=dataset_type,
