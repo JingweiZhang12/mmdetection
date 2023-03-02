@@ -71,14 +71,15 @@ class VideoValLoop(ValLoop):
             frame_id = track_data_sample[0].frame_id
             if frame_id == 0:
                 self.video_outputs = track_data_sample.new()
-            elif frame_id == ori_video_len - 1:
-                self.evaluator.process(
-                    data_samples=[self.video_outputs], data_batch=data_batch)
             else:
                 self.video_outputs.video_data_samples.append(
                     track_data_sample[0])
                 self.video_outputs.set_metainfo(
                     dict(video_length=self.video_outputs.video_length + 1))
+                if frame_id == ori_video_len - 1:
+                    self.evaluator.process(
+                        data_samples=[self.video_outputs],
+                        data_batch=data_batch)
 
         self.runner.call_hook(
             'after_val_iter',
@@ -115,14 +116,15 @@ class VideoTestLoop(TestLoop):
             frame_id = track_data_sample[0].frame_id
             if frame_id == 0:
                 self.video_outputs = track_data_sample.new()
-            elif frame_id == ori_video_len - 1:
-                self.evaluator.process(
-                    data_samples=[self.video_outputs], data_batch=data_batch)
             else:
                 self.video_outputs.video_data_samples.append(
                     track_data_sample[0])
                 self.video_outputs.set_metainfo(
                     dict(video_length=self.video_outputs.video_length + 1))
+                if frame_id == ori_video_len - 1:
+                    self.evaluator.process(
+                        data_samples=[self.video_outputs],
+                        data_batch=data_batch)
 
         self.runner.call_hook(
             'after_test_iter',
