@@ -9,6 +9,7 @@ from mmengine.dataset import pseudo_collate
 from mmengine.structures import InstanceData, PixelData
 
 from mmdet.structures import TrackDataSample
+from mmdet.utils.util_random import ensure_rng
 from ..registry import TASK_UTILS
 from ..structures import DetDataSample
 from ..structures.bbox import HorizontalBoxes
@@ -275,10 +276,13 @@ def demo_mm_sampling_results(proposals_list,
 
 def demo_track_inputs(batch_size=1,
                       num_frames=2,
+                      num_key_frames=1,
+                      num_ref_frames=1,
                       image_shapes=(3, 128, 128),
                       num_items=None,
                       num_classes=10,
                       with_mask=False,
+                      apply_sampling=False,
                       with_semantic=False):
     """Create a superset of inputs needed to run test or train batches.
 
@@ -318,6 +322,10 @@ def demo_track_inputs(batch_size=1,
     for idx in range(batch_size):
         mm_inputs = dict(inputs=dict())
         _, h, w = image_shapes[idx]
+
+        if apply_sampling:
+            num_frames = num_key_frames + num_ref_frames
+
         imgs = rng.randint(
             0, 255, size=(num_frames, *image_shapes[idx]), dtype=np.uint8)
         mm_inputs['inputs'] = torch.from_numpy(imgs)
@@ -336,7 +344,10 @@ def demo_track_inputs(batch_size=1,
         video_data_samples = []
         for i in range(num_frames):
             data_sample = DetDataSample()
-            img_meta['frame_id'] = i
+            if apply_sampling:
+                img_meta['frame_id'] = 0
+            else:
+                img_meta['frame_id'] = i
             data_sample.set_metainfo(img_meta)
 
             # gt_instances
@@ -368,12 +379,53 @@ def demo_track_inputs(batch_size=1,
 
         track_data_sample = TrackDataSample()
         track_data_sample.video_data_samples = video_data_samples
+        if apply_sampling:
+            key_frames_inds = list(range(num_frames))[:num_key_frames]
+            ref_frames_inds = list(range(num_frames))[num_key_frames:]
+            track_data_sample.set_metainfo(
+                dict(key_frames_inds=key_frames_inds))
+            track_data_sample.set_metainfo(
+                dict(ref_frames_inds=ref_frames_inds))
         mm_inputs['data_samples'] = track_data_sample
 
         # TODO: gt_ignore
         packed_inputs.append(mm_inputs)
     data = pseudo_collate(packed_inputs)
     return data
+
+
+def random_boxes(num=1, scale=1, rng=None):
+    """Simple version of ``kwimage.Boxes.random``
+    Returns:
+        Tensor: shape (n, 4) in x1, y1, x2, y2 format.
+    References:
+        https://gitlab.kitware.com/computer-vision/kwimage/blob/master/kwimage/structs/boxes.py#L1390 # noqa: E501
+    Example:
+        >>> num = 3
+        >>> scale = 512
+        >>> rng = 0
+        >>> boxes = random_boxes(num, scale, rng)
+        >>> print(boxes)
+        tensor([[280.9925, 278.9802, 308.6148, 366.1769],
+                [216.9113, 330.6978, 224.0446, 456.5878],
+                [405.3632, 196.3221, 493.3953, 270.7942]])
+    """
+    rng = ensure_rng(rng)
+
+    tlbr = rng.rand(num, 4).astype(np.float32)
+
+    tl_x = np.minimum(tlbr[:, 0], tlbr[:, 2])
+    tl_y = np.minimum(tlbr[:, 1], tlbr[:, 3])
+    br_x = np.maximum(tlbr[:, 0], tlbr[:, 2])
+    br_y = np.maximum(tlbr[:, 1], tlbr[:, 3])
+
+    tlbr[:, 0] = tl_x * scale
+    tlbr[:, 1] = tl_y * scale
+    tlbr[:, 2] = br_x * scale
+    tlbr[:, 3] = br_y * scale
+
+    boxes = torch.from_numpy(tlbr)
+    return boxes
 
 
 # TODO: Support full ceph
