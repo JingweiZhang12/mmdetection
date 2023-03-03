@@ -27,5 +27,5 @@ __all__ = [
     'AspectRatioBatchSampler', 'ClassAwareSampler', 'MultiSourceSampler',
     'GroupMultiSourceSampler', 'BaseDetDataset', 'CrowdHumanDataset',
     'Objects365V1Dataset', 'Objects365V2Dataset', 'BaseVideoDataset',
-    'MOTChallengeDataset', 'ImgQuotaSampler'
+    'MOTChallengeDataset', 'ImgQuotaSampler', 'ReIDDataset'
 ]
