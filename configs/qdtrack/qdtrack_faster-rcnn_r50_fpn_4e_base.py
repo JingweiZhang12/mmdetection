@@ -42,7 +42,7 @@ model = dict(
         mean=[103.530, 116.280, 123.675],
         std=[1.0, 1.0, 1.0],
         # TODO: it is different from the master branch
-        bgr_to_rgb=False,
+        bgr_to_rgb=True,
         pad_size_divisor=32),
     detector=detector,
     track_head=dict(
