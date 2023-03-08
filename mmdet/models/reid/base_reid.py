@@ -2,7 +2,12 @@
 from typing import List, Optional
 
 import torch
-from mmcls.models.classifiers import ImageClassifier
+
+try:
+    from mmcls.models.classifiers import ImageClassifier
+except ImportError:
+    raise ImportError('mmcls is not installed, please install it by: '
+                      'mim install mmcls>=1.0.0rc0')
 
 from mmdet.registry import MODELS
 from mmdet.structures import ReIDDataSample

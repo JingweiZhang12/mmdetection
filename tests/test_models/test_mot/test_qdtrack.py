@@ -84,11 +84,7 @@ class TestQDTrack(TestCase):
                 model = model.cuda()
 
             packed_inputs = demo_track_inputs(
-                batch_size=1,
-                num_key_frames=1,
-                num_ref_frames=1,
-                num_classes=1,
-                apply_sampling=True)
+                batch_size=1, num_frames=2, num_classes=1)
             out_data = model.data_preprocessor(packed_inputs, False)
 
             # Test forward test
