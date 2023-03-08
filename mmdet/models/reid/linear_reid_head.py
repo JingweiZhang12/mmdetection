@@ -4,7 +4,13 @@ from typing import List, Optional, Tuple, Union
 
 import torch
 import torch.nn as nn
-from mmcls.evaluation.metrics import Accuracy
+
+try:
+    from mmcls.evaluation.metrics import Accuracy
+except ImportError:
+    raise ImportError('mmcls is not installed, please install it by: '
+                      'mim install mmcls>=1.0.0rc0')
+
 from mmengine.model import BaseModule
 
 from mmdet.registry import MODELS

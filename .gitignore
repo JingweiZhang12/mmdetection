@@ -121,3 +121,9 @@ work_dirs/
 *.pth
 *.py~
 *.sh~
+
+train_sort
+reid
+start_test.sh
+start_train.sh
+MOT17

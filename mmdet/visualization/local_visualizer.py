@@ -10,6 +10,7 @@ from mmengine.dist import master_only
 from mmengine.structures import InstanceData, PixelData
 from mmengine.visualization import Visualizer
 
+from mmdet.structures.bbox import scale_boxes
 from ..evaluation import INSTANCE_OFFSET
 from ..registry import VISUALIZERS
 from ..structures import DetDataSample, OptTrackSampleList
@@ -567,6 +568,10 @@ class TrackLocalVisualizer(Visualizer):
 
         if draw_gt and data_sample is not None:
             assert 'gt_instances' in img_data_sample
+            assert 'scale_factor' in img_data_sample
+            scale_factor = [1 / s for s in img_data_sample.scale_factor]
+            img_data_sample.gt_instances.bboxes = scale_boxes(
+                img_data_sample.gt_instances.bboxes, scale_factor)
             gt_img_data = self._draw_instances(image,
                                                img_data_sample.gt_instances)
 
@@ -587,8 +592,8 @@ class TrackLocalVisualizer(Visualizer):
 
         if show:
             self.show(drawn_img, win_name=name, wait_time=wait_time)
-        else:
-            self.add_image(name, drawn_img, step)
 
         if out_file is not None:
             mmcv.imwrite(drawn_img[..., ::-1], out_file)
+        else:
+            self.add_image(name, drawn_img, step)
