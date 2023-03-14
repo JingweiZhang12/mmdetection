@@ -9,7 +9,7 @@ val_evaluator = [
     dict(
         type='MOTChallengeMetric',
         metric=['HOTA', 'CLEAR', 'Identity'],
-        outfile_prefix='results/qdtrack_img_tracking')
+        outfile_prefix='results/qdtrack_img_sampler')
 ]
 
 test_evaluator = val_evaluator
