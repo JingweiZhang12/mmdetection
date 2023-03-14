@@ -3,7 +3,7 @@ from typing import Optional
 
 from torch import Tensor
 
-from mmdet.registry import MODELS, TASK_UTILS
+from mmdet.registry import MODELS
 from mmdet.structures import TrackSampleList
 from mmdet.utils import OptConfigType
 from .base import BaseMOTModel
@@ -31,7 +31,6 @@ class DeepSORT(BaseMOTModel):
                  detector: Optional[dict] = None,
                  reid: Optional[dict] = None,
                  tracker: Optional[dict] = None,
-                 motion: Optional[dict] = None,
                  data_preprocessor: OptConfigType = None,
                  init_cfg: OptConfigType = None):
         super().__init__(data_preprocessor, init_cfg)
@@ -41,9 +40,6 @@ class DeepSORT(BaseMOTModel):
 
         if reid is not None:
             self.reid = MODELS.build(reid)
-
-        if motion is not None:
-            self.motion = TASK_UTILS.build(motion)
 
         if tracker is not None:
             self.tracker = MODELS.build(tracker)
@@ -95,7 +91,7 @@ class DeepSORT(BaseMOTModel):
 
         for frame_id in range(video_len):
             img_data_sample = track_data_sample[frame_id]
-            single_img = inputs[:, frame_id]
+            single_img = inputs[:, frame_id].contiguous()
             # det_results List[DetDataSample]
             det_results = self.detector.predict(single_img, [img_data_sample])
             assert len(det_results) == 1, 'Batch inference is not supported.'

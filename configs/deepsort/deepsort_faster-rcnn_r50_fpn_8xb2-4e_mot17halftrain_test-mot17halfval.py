@@ -39,7 +39,6 @@ model = dict(
         rgb_to_bgr=False,
         pad_size_divisor=32),
     detector=detector,
-    motion=dict(type='KalmanFilter', center_only=False),
     reid=dict(
         type='BaseReID',
         data_preprocessor=None,
@@ -68,6 +67,7 @@ model = dict(
         )),
     tracker=dict(
         type='SORTTracker',
+        motion=dict(type='KalmanFilter', center_only=False),
         obj_score_thr=0.5,
         reid=dict(
             num_samples=10,

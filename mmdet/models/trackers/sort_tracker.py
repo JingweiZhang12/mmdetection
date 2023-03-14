@@ -134,7 +134,7 @@ class SORTTracker(BaseTracker):
         if frame_id == 0:
             self.reset()
         if not hasattr(self, 'kf'):
-            self.kf = model.motion
+            self.kf = self.motion
 
         if self.with_reid:
             if self.reid.get('img_norm_cfg', False):
@@ -171,8 +171,8 @@ class SORTTracker(BaseTracker):
                              dtype=torch.long).to(bboxes.device)
 
             # motion
-            if model.with_motion:
-                self.tracks, costs = model.motion.track(
+            if self.motion:
+                self.tracks, costs = self.motion.track(
                     self.tracks, bbox_xyxy_to_cxcyah(bboxes))
 
             active_ids = self.confirmed_ids

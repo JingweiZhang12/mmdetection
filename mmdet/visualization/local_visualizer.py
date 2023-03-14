@@ -13,7 +13,7 @@ from mmengine.visualization import Visualizer
 from mmdet.structures.bbox import scale_boxes
 from ..evaluation import INSTANCE_OFFSET
 from ..registry import VISUALIZERS
-from ..structures import DetDataSample, OptTrackSampleList
+from ..structures import DetDataSample
 from ..structures.mask import BitmapMasks, PolygonMasks, bitmap_to_polygon
 from .palette import _get_adaptive_scales, get_palette, jitter_color
 
@@ -523,8 +523,9 @@ class TrackLocalVisualizer(Visualizer):
             self,
             name: str,
             image: np.ndarray,
-            data_sample: OptTrackSampleList = None,
+            data_sample: DetDataSample = None,
             draw_gt: bool = True,
+            rescale: bool = True,
             draw_pred: bool = True,
             show: bool = False,
             wait_time: int = 0,
@@ -550,6 +551,8 @@ class TrackLocalVisualizer(Visualizer):
                 Defaults to None.
             draw_gt (bool): Whether to draw GT TrackDataSample.
                 Default to True.
+            rescale (bool): Whether to rescale GT TrackDataSample.
+                Default to True.
             draw_pred (bool): Whether to draw Prediction TrackDataSample.
                 Defaults to True.
             show (bool): Whether to display the drawn image. Default to False.
@@ -563,21 +566,20 @@ class TrackLocalVisualizer(Visualizer):
         pred_img_data = None
 
         if data_sample is not None:
-            img_data_sample = data_sample[0]
-            img_data_sample = img_data_sample.cpu()
+            data_sample = data_sample.cpu()
 
         if draw_gt and data_sample is not None:
-            assert 'gt_instances' in img_data_sample
-            assert 'scale_factor' in img_data_sample
-            scale_factor = [1 / s for s in img_data_sample.scale_factor]
-            img_data_sample.gt_instances.bboxes = scale_boxes(
-                img_data_sample.gt_instances.bboxes, scale_factor)
-            gt_img_data = self._draw_instances(image,
-                                               img_data_sample.gt_instances)
+            assert 'gt_instances' in data_sample
+            assert 'scale_factor' in data_sample
+            if rescale:
+                scale_factor = [1 / s for s in data_sample.scale_factor]
+                data_sample.gt_instances.bboxes = scale_boxes(
+                    data_sample.gt_instances.bboxes, scale_factor)
+            gt_img_data = self._draw_instances(image, data_sample.gt_instances)
 
         if draw_pred and data_sample is not None:
-            assert 'pred_track_instances' in img_data_sample
-            pred_instances = img_data_sample.pred_track_instances
+            assert 'pred_track_instances' in data_sample
+            pred_instances = data_sample.pred_track_instances
             if 'scores' in pred_instances:
                 pred_instances = pred_instances[
                     pred_instances.scores > pred_score_thr].cpu()

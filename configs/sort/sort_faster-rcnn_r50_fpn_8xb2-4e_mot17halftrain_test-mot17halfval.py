@@ -40,12 +40,15 @@ model = dict(
         rgb_to_bgr=False,
         pad_size_divisor=32),
     detector=detector,
-    motion=dict(type='KalmanFilter', center_only=False),
     tracker=dict(
-        type='SORTTracker', obj_score_thr=0.5, match_iou_thr=0.5, reid=None))
+        type='SORTTracker',
+        motion=dict(type='KalmanFilter', center_only=False),
+        obj_score_thr=0.5,
+        match_iou_thr=0.5,
+        reid=None))
 
 train_dataloader = None
 
 train_cfg = None
-val_cfg = dict(type='VideoValLoop')
-test_cfg = dict(type='VideoTestLoop')
+val_cfg = dict(type='ValLoop')
+test_cfg = dict(type='TestLoop')

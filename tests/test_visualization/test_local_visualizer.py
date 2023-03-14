@@ -7,7 +7,7 @@ import torch
 from mmengine.structures import InstanceData, PixelData
 
 from mmdet.evaluation import INSTANCE_OFFSET
-from mmdet.structures import DetDataSample, TrackDataSample
+from mmdet.structures import DetDataSample
 from mmdet.visualization import DetLocalVisualizer, TrackLocalVisualizer
 
 
@@ -163,8 +163,7 @@ class TestTrackLocalVisualizer(TestCase):
         image_data_sample = DetDataSample()
         image_data_sample.gt_instances = gt_instances
         image_data_sample.pred_track_instances = pred_instances
-        track_data_sample = TrackDataSample()
-        track_data_sample.video_data_samples = [image_data_sample]
+        image_data_sample.scale_factor = (1.0, 1.0)
 
         track_local_visualizer = TrackLocalVisualizer(alpha=0.2)
         track_local_visualizer.dataset_meta = dict(
@@ -172,22 +171,22 @@ class TestTrackLocalVisualizer(TestCase):
 
         # test gt_instances
         track_local_visualizer.add_datasample('image', image,
-                                              track_data_sample, None)
+                                              image_data_sample, None)
 
         # test out_file
         track_local_visualizer.add_datasample(
-            'image', image, track_data_sample, None, out_file=out_file)
+            'image', image, image_data_sample, None, out_file=out_file)
         self._assert_image_and_shape(out_file, (h, w, 3))
 
         # test gt_instances and pred_instances
         track_local_visualizer.add_datasample(
-            'image', image, track_data_sample, out_file=out_file)
+            'image', image, image_data_sample, out_file=out_file)
         self._assert_image_and_shape(out_file, (h, 2 * w, 3))
 
         track_local_visualizer.add_datasample(
             'image',
             image,
-            track_data_sample,
+            image_data_sample,
             draw_gt=False,
             out_file=out_file)
         self._assert_image_and_shape(out_file, (h, w, 3))
@@ -195,7 +194,7 @@ class TestTrackLocalVisualizer(TestCase):
         track_local_visualizer.add_datasample(
             'image',
             image,
-            track_data_sample,
+            image_data_sample,
             draw_pred=False,
             out_file=out_file)
         self._assert_image_and_shape(out_file, (h, w, 3))

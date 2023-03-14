@@ -192,7 +192,7 @@ class TrackVisualizationHook(Hook):
 
     def __init__(self,
                  draw: bool = False,
-                 interval: int = 30,
+                 interval: int = 1,
                  score_thr: float = 0.3,
                  show: bool = False,
                  wait_time: float = 0.,
@@ -214,6 +214,7 @@ class TrackVisualizationHook(Hook):
         self.backend_args = backend_args
         self.draw = draw
         self.test_out_dir = test_out_dir
+        self.image_idx = 0
 
     def after_val_iter(self, runner: Runner, batch_idx: int, data_batch: dict,
                        outputs: Sequence[TrackDataSample]) -> None:
@@ -230,25 +231,23 @@ class TrackVisualizationHook(Hook):
 
         assert len(outputs) == 1,\
             'only batch_size=1 is supported while validating.'
-        sampler = runner.val_dataloader.sampler
-        assert isinstance(sampler, ImgQuotaSampler), \
-            f'visualization only support ImgQuotaSampler,' \
-            f'but get {sampler.__class__.__name__}'
-        total_curr_iter = runner.iter + batch_idx
 
-        if self.every_n_inner_iters(batch_idx, self.interval):
-            track_data_sample = outputs[0]
-            img_path = track_data_sample[0].img_path
-            img_bytes = get(img_path, backend_args=self.backend_args)
-            img = mmcv.imfrombytes(img_bytes, channel_order='rgb')
-            self._visualizer.add_datasample(
-                osp.basename(img_path) if self.show else 'val_img',
-                img,
-                data_sample=track_data_sample,
-                show=self.show,
-                wait_time=self.wait_time,
-                pred_score_thr=self.score_thr,
-                step=total_curr_iter)
+        sampler = runner.val_dataloader.sampler
+        if isinstance(sampler, ImgQuotaSampler):
+            if self.every_n_inner_iters(batch_idx, self.interval):
+                track_data_sample = outputs[0]
+                self.visualize_single_image(track_data_sample[0], batch_idx)
+        else:
+            # video visualization DefaultSampler
+            if self.every_n_inner_iters(batch_idx, 1):
+                track_data_sample = outputs[0]
+                video_length = len(track_data_sample)
+
+                for frame_id in range(video_length):
+                    img_data_sample = track_data_sample[frame_id]
+                    self.visualize_single_image(img_data_sample,
+                                                self.image_idx + frame_id)
+                self.image_idx = self.image_idx + video_length
 
     def after_test_iter(self, runner: Runner, batch_idx: int, data_batch: dict,
                         outputs: Sequence[TrackDataSample]) -> None:
@@ -256,44 +255,62 @@ class TrackVisualizationHook(Hook):
 
         Args:
             runner (:obj:`Runner`): The runner of the testing process.
-            batch_idx (int): The index of the current batch in the val loop.
+            batch_idx (int): The index of the current batch in the test loop.
             data_batch (dict): Data from dataloader.
             outputs (Sequence[:obj:`TrackDataSample`]): Outputs from model.
         """
         if self.draw is False:
             return
 
+        assert len(outputs) == 1, \
+            'only batch_size=1 is supported while testing.'
+
         if self.test_out_dir is not None:
             self.test_out_dir = osp.join(runner.work_dir, runner.timestamp,
                                          self.test_out_dir)
             mkdir_or_exist(self.test_out_dir)
 
-        assert len(outputs) == 1, \
-            'only batch_size=1 is supported while testing.'
         sampler = runner.test_dataloader.sampler
-        assert isinstance(sampler, ImgQuotaSampler), \
-            f'visualization only support ImgQuotaSampler,' \
-            f'but get {sampler.__class__.__name__}'
+        if isinstance(sampler, ImgQuotaSampler):
+            if self.every_n_inner_iters(batch_idx, self.interval):
+                track_data_sample = outputs[0]
+                self.visualize_single_image(track_data_sample[0], batch_idx)
+        else:
+            # video visualization DefaultSampler
+            if self.every_n_inner_iters(batch_idx, 1):
+                track_data_sample = outputs[0]
+                video_length = len(track_data_sample)
 
-        if self.every_n_inner_iters(batch_idx, self.interval):
-            track_data_sample = outputs[0]
-            img_path = track_data_sample[0].img_path
-            img_bytes = get(img_path, backend_args=self.backend_args)
-            img = mmcv.imfrombytes(img_bytes, channel_order='rgb')
+                for frame_id in range(video_length):
+                    img_data_sample = track_data_sample[frame_id]
+                    self.visualize_single_image(img_data_sample,
+                                                self.image_idx + frame_id)
+                self.image_idx = self.image_idx + video_length
 
-            out_file = None
-            if self.test_out_dir is not None:
-                video_name = img_path.split('/')[-3]
-                mkdir_or_exist(osp.join(self.test_out_dir, video_name))
-                out_file = osp.basename(img_path)
-                out_file = osp.join(self.test_out_dir, video_name, out_file)
+    def visualize_single_image(self, img_data_sample: DetDataSample,
+                               step: int):
+        """
+        Args:
+            img_data_sample (DetDataSample): single image output.
+            step (int): The index of the current image.
+        """
+        img_path = img_data_sample.img_path
+        img_bytes = get(img_path, backend_args=self.backend_args)
+        img = mmcv.imfrombytes(img_bytes, channel_order='rgb')
 
-            self._visualizer.add_datasample(
-                osp.basename(img_path) if self.show else 'test_img',
-                img,
-                data_sample=track_data_sample,
-                show=self.show,
-                wait_time=self.wait_time,
-                pred_score_thr=self.score_thr,
-                out_file=out_file,
-                step=batch_idx)
+        out_file = None
+        if self.test_out_dir is not None:
+            video_name = img_path.split('/')[-3]
+            mkdir_or_exist(osp.join(self.test_out_dir, video_name))
+            out_file = osp.join(self.test_out_dir, video_name,
+                                osp.basename(img_path))
+
+        self._visualizer.add_datasample(
+            osp.basename(img_path) if self.show else 'test_img',
+            img,
+            data_sample=img_data_sample,
+            show=self.show,
+            wait_time=self.wait_time,
+            pred_score_thr=self.score_thr,
+            out_file=out_file,
+            step=step)

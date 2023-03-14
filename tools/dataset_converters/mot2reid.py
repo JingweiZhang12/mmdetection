@@ -36,6 +36,7 @@ import random
 
 import mmcv
 import numpy as np
+from mmengine.fileio import list_from_file
 from tqdm import tqdm
 
 USELESS = [3, 4, 5, 6, 9, 10, 11]
@@ -73,9 +74,7 @@ def parse_args():
 def main():
     args = parse_args()
     if not osp.isdir(args.output):
-        os.makedirs(args.output)
-    elif os.listdir(args.output):
-        raise OSError(f'Directory must empty: \'{args.output}\'')
+        os.makedirs(args.output, exist_ok=True)
 
     in_folder = osp.join(args.input, 'train')
     video_names = os.listdir(in_folder)
@@ -87,7 +86,7 @@ def main():
     for video_name in tqdm(video_names):
         # load video infos
         video_folder = osp.join(in_folder, video_name)
-        infos = mmcv.list_from_file(f'{video_folder}/seqinfo.ini')
+        infos = list_from_file(f'{video_folder}/seqinfo.ini')
         # video-level infos
         assert video_name == infos[1].strip().split('=')[1]
         raw_img_folder = infos[2].strip().split('=')[1]
@@ -99,7 +98,7 @@ def main():
         reid_train_folder = osp.join(args.output, 'imgs')
         if not osp.exists(reid_train_folder):
             os.makedirs(reid_train_folder)
-        gts = mmcv.list_from_file(f'{video_folder}/gt/gt.txt')
+        gts = list_from_file(f'{video_folder}/gt/gt.txt')
         last_frame_id = -1
         for gt in gts:
             gt = gt.strip().split(',')

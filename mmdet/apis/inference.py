@@ -1,8 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import copy
-import logging
-import os
-import tempfile
 import warnings
 from pathlib import Path
 from typing import Optional, Sequence, Union
@@ -14,7 +11,6 @@ from mmcv.ops import RoIPool
 from mmcv.transforms import Compose
 from mmengine.config import Config
 from mmengine.dataset import default_collate
-from mmengine.logging import MMLogger
 from mmengine.model.utils import revert_sync_batchnorm
 from mmengine.registry import init_default_scope
 from mmengine.runner import load_checkpoint
@@ -280,9 +276,10 @@ def inference_mot(model: nn.Module, img: np.ndarray, frame_id: int,
 
 def init_track_model(config: Union[str, Config],
                      checkpoint: Optional[str] = None,
+                     detector: Optional[str] = None,
+                     reid: Optional[str] = None,
                      device: str = 'cuda:0',
-                     cfg_options: Optional[dict] = None,
-                     verbose_init_params: bool = False) -> nn.Module:
+                     cfg_options: Optional[dict] = None) -> nn.Module:
     """Initialize a model from config file.
 
     Args:
@@ -313,34 +310,23 @@ def init_track_model(config: Union[str, Config],
         f'demo only support ImgQuotaSampler, but get {sampler}'
     model = MODELS.build(config.model)
 
-    if not verbose_init_params:
-        # Creating a temporary file to record the information of initialized
-        # parameters. If not, the information of initialized parameters will be
-        # printed to the console because of the call of
-        # `mmcv.runner.BaseModule.init_weights`.
-        tmp_file = tempfile.NamedTemporaryFile(delete=False)
-        file_handler = logging.FileHandler(tmp_file.name, mode='w')
-        logger = MMLogger.get_current_instance()
-        logger.addHandler(file_handler)
-        # We need call `init_weights()` to load pretained weights in MOT
-        # task.
-        model.init_weights()
-        file_handler.close()
-        logger.removeHandler(file_handler)
-        tmp_file.close()
-        os.remove(tmp_file.name)
-    else:
-        # We need call `init_weights()` to load pretained weights in MOT task.
-        model.init_weights()
-
     if checkpoint is not None:
         checkpoint = load_checkpoint(model, checkpoint, map_location='cpu')
         # Weights converted from elsewhere may not have meta fields.
         checkpoint_meta = checkpoint.get('meta', {})
         # save the dataset_meta in the model for convenience
         if 'dataset_meta' in checkpoint_meta:
-            # mmtrack 1.x
             model.dataset_meta = checkpoint_meta['dataset_meta']
+
+    if detector is not None:
+        assert not (checkpoint and detector), \
+            'Error: checkpoint and detector checkpoint cannot both exist'
+        load_checkpoint(model.detector, detector, map_location='cpu')
+
+    if reid is not None:
+        assert not (checkpoint and reid), \
+            'Error: checkpoint and reid checkpoint cannot both exist'
+        load_checkpoint(model.reid, reid, map_location='cpu')
 
     # Some methods don't load checkpoints or checkpoints don't contain
     # 'dataset_meta'

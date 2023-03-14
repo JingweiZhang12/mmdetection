@@ -3,7 +3,7 @@ _base_ = [
 ]
 
 default_hooks = dict(
-    logger=dict(type='LoggerHook', interval=50),
+    logger=dict(type='LoggerHook', interval=1),
     visualization=dict(type='TrackVisualizationHook', draw=False))
 
 vis_backends = [dict(type='LocalVisBackend')]
@@ -32,6 +32,9 @@ detector.rpn_head.loss_bbox.update(
 detector.rpn_head.bbox_coder.update(dict(clip_border=False))
 detector.roi_head.bbox_head.update(dict(num_classes=1))
 detector.roi_head.bbox_head.bbox_coder.update(dict(clip_border=False))
+# for stable training
+detector.roi_head.bbox_roi_extractor.roi_layer.use_torchvision = True
+
 detector['init_cfg'] = dict(
     type='Pretrained',
     checkpoint=  # noqa: E251
@@ -48,7 +51,6 @@ model = dict(
         type='TrackDataPreprocessor',
         mean=[103.530, 116.280, 123.675],
         std=[1.0, 1.0, 1.0],
-        # TODO: it is different from the master branch
         bgr_to_rgb=False,
         pad_size_divisor=32),
     detector=detector,
@@ -56,7 +58,12 @@ model = dict(
         type='QuasiDenseTrackHead',
         roi_extractor=dict(
             type='SingleRoIExtractor',
-            roi_layer=dict(type='RoIAlign', output_size=7, sampling_ratio=0),
+            roi_layer=dict(
+                type='RoIAlign',
+                output_size=7,
+                sampling_ratio=0,
+                # for stable training
+                use_torchvision=True),
             out_channels=256,
             featmap_strides=[4, 8, 16, 32]),
         embed_head=dict(
@@ -114,7 +121,7 @@ param_scheduler = [
 ]
 
 # runtime settings
-train_cfg = dict(type='EpochBasedTrainLoop', max_epochs=4, val_interval=1)
-val_cfg = dict(type='VideoValLoop')
-test_cfg = dict(type='VideoTestLoop')
+train_cfg = dict(type='EpochBasedTrainLoop', max_epochs=4, val_interval=4)
+val_cfg = dict(type='ValLoop')
+test_cfg = dict(type='TestLoop')
 del _base_.visualizer

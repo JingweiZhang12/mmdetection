@@ -17,4 +17,4 @@ python -m torch.distributed.launch \
     $(dirname "$0")/test_tracking.py \
     $CONFIG \
     --launcher pytorch \
-    ${@:4}
+    ${@:3}

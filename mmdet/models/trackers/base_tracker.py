@@ -6,6 +6,8 @@ import torch
 import torch.nn.functional as F
 from addict import Dict
 
+from mmdet.registry import TASK_UTILS
+
 
 class BaseTracker(metaclass=ABCMeta):
     """Base tracker model.
@@ -20,9 +22,12 @@ class BaseTracker(metaclass=ABCMeta):
     """
 
     def __init__(self,
+                 motion: Optional[dict] = None,
                  momentums: Optional[dict] = None,
                  num_frames_retain: int = 10) -> None:
         super().__init__()
+        if motion is not None:
+            self.motion = TASK_UTILS.build(motion)
         if momentums is not None:
             assert isinstance(momentums, dict), 'momentums must be a dict'
         self.momentums = momentums

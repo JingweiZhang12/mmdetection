@@ -7,6 +7,7 @@ from mmengine.config import Config, DictAction
 from mmengine.model import is_model_wrapper
 from mmengine.registry import RUNNERS
 from mmengine.runner import Runner
+from mmengine.runner.checkpoint import load_checkpoint
 
 from mmdet.utils import register_all_modules
 
@@ -17,6 +18,8 @@ def parse_args():
         description='MMTrack test (and eval) a model')
     parser.add_argument('config', help='test config file path')
     parser.add_argument('--checkpoint', help='checkpoint file')
+    parser.add_argument('--detector', help='detection checkpoint file')
+    parser.add_argument('--reid', help='reid checkpoint file')
     parser.add_argument(
         '--work-dir',
         help='the directory to save the file containing evaluation metrics')
@@ -76,9 +79,19 @@ def main():
         runner = RUNNERS.build(cfg)
 
     if is_model_wrapper(runner.model):
-        runner.model.module.init_weights()
+        model = runner.model.module
     else:
-        runner.model.init_weights()
+        model = runner.model
+
+    if args.detector:
+        assert not (args.checkpoint and args.detector), \
+            'Error: checkpoint and detector checkpoint cannot both exist'
+        load_checkpoint(model.detector, args.detector)
+
+    if args.reid:
+        assert not (args.checkpoint and args.reid), \
+             'Error: checkpoint and reid checkpoint cannot both exist'
+        load_checkpoint(model.reid, args.reid)
 
     # start testing
     runner.test()

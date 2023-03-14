@@ -55,6 +55,8 @@ mmdetection
 |   ├── MOT15/MOT16/MOT17/MOT20
 |   |   ├── train
 |   |   ├── test
+|   |   ├── annotations
+|   |   ├── reid
 │   │
 |   ├── DanceTrack
 |   |   ├── train

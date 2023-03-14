@@ -69,3 +69,18 @@ Optional arguments:
 - `FPS`: FPS of the output video.
 - `--show`: Whether show the video on the fly.
 - `BACKEND`: The backend to visualize the boxes. Options are `cv2` and `plt`.
+
+## Browse dataset
+
+`tools/analysis_tools/mot/browse_dataset.py` can visualize the training dataset to check whether the dataset configuration is correct.
+
+**Examples:**
+
+```shell
+python tools/analysis_tools/browse_dataset.py ${CONFIG_FILE} [--show-interval ${SHOW_INTERVAL}]
+```
+
+Optional arguments:
+
+- `SHOW_INTERVAL`: The interval of show (s).
+- `--show`: Whether show the images on the fly.
