@@ -1,6 +1,6 @@
 # dataset settings
 dataset_type = 'CocoDataset'
-data_root = 'data/coco/'
+data_root = 'data/MOT17/'
 
 # file_client_args = dict(
 #     backend='petrel',
@@ -36,8 +36,9 @@ train_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file='annotations/instances_train2017.json',
-        data_prefix=dict(img='train2017/'),
+        ann_file='annotations/half-train_cocoformat.json',
+        data_prefix=dict(img_path='train'),
+        metainfo=dict(classes=('pedestrian', )),
         filter_cfg=dict(filter_empty_gt=True, min_size=32),
         pipeline=train_pipeline))
 val_dataloader = dict(
@@ -49,8 +50,9 @@ val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file='annotations/instances_val2017.json',
-        data_prefix=dict(img='val2017/'),
+        ann_file='annotations/half-val_cocoformat.json',
+        data_prefix=dict(img_path='train'),
+        metainfo=dict(classes=('pedestrian', )),
         test_mode=True,
         pipeline=test_pipeline))
 test_dataloader = val_dataloader

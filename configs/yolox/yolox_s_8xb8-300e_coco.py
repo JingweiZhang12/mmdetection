@@ -70,7 +70,7 @@ model = dict(
     test_cfg=dict(score_thr=0.01, nms=dict(type='nms', iou_threshold=0.65)))
 
 # dataset settings
-data_root = 'data/coco/'
+data_root = 'data/MOT17/'
 dataset_type = 'CocoDataset'
 
 # file_client_args = dict(
@@ -117,8 +117,8 @@ train_dataset = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file='annotations/instances_train2017.json',
-        data_prefix=dict(img='train2017/'),
+        ann_file='annotations/half-train_cocoformat.json',
+        data_prefix=dict(img='train'),
         pipeline=[
             dict(type='LoadImageFromFile', file_client_args=file_client_args),
             dict(type='LoadAnnotations', with_bbox=True)
@@ -155,15 +155,15 @@ val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file='annotations/instances_val2017.json',
-        data_prefix=dict(img='val2017/'),
+        ann_file='annotations/half-val_cocoformat.json',
+        data_prefix=dict(img='train'),
         test_mode=True,
         pipeline=test_pipeline))
 test_dataloader = val_dataloader
 
 val_evaluator = dict(
     type='CocoMetric',
-    ann_file=data_root + 'annotations/instances_val2017.json',
+    ann_file=data_root + 'annotations/half-val_cocoformat.json',
     metric='bbox')
 test_evaluator = val_evaluator
 

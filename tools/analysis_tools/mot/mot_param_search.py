@@ -5,18 +5,20 @@ import os.path as osp
 from itertools import product
 
 from mmengine.config import Config, DictAction
+from mmengine.model import is_model_wrapper
 from mmengine.dist import get_dist_info
 from mmengine.logging import MMLogger, print_log
 from mmengine.runner import Runner
-
-from mmdet.utils import register_all_modules
-
+from mmengine.registry import init_default_scope
+from mmengine.runner.checkpoint import load_checkpoint
 
 def parse_args():
     parser = argparse.ArgumentParser(
         description='MMTrack test (and eval) a model')
     parser.add_argument('config', help='test config file path')
     parser.add_argument('--checkpoint', help='checkpoint file')
+    parser.add_argument('--detector', help='detection checkpoint file')
+    parser.add_argument('--reid', help='reid checkpoint file')
     parser.add_argument(
         '--work-dir',
         help='the directory to save the file containing evaluation metrics')
@@ -64,10 +66,12 @@ def main():
     args = parse_args()
 
     # do not init the default scope here because it will be init in the runner
-    register_all_modules(init_default_scope=False)
+    
 
     # load config
     cfg = Config.fromfile(args.config)
+    init_default_scope(cfg.get('default_scope', 'mmdet'))
+    
     cfg.launcher = args.launcher
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
@@ -82,7 +86,7 @@ def main():
                                 osp.splitext(osp.basename(args.config))[0])
 
     cfg.load_from = args.checkpoint
-
+    
     logger = MMLogger.get_instance(name='ParamsSearcher', logger_name='Logger')
     # get all cases
     search_params = get_search_params(cfg.model.tracker, logger=logger)
@@ -109,6 +113,23 @@ def main():
     print_log(f'Record {search_metrics}.', logger)
 
     runner = Runner.from_cfg(cfg)
+    if is_model_wrapper(runner.model):
+        model = runner.model.module
+    else:
+        model = runner.model
+
+    if args.detector:
+        assert not (args.checkpoint and args.detector), \
+            'Error: checkpoint and detector checkpoint cannot both exist'
+        load_checkpoint(model.detector, args.detector)
+
+    if args.reid:
+        assert (args.checkpoint is not None) or (args.detector is not None), \
+             'Error: checkpoint and detector checkpoint cannot both not exist' 
+        assert not (args.checkpoint and args.reid), \
+             'Error: checkpoint and reid checkpoint cannot both exist'
+        load_checkpoint(model.reid, args.reid)
+
     for case in all_search_cases:
         for name, value in case.items():
             if hasattr(runner.model, 'module'):

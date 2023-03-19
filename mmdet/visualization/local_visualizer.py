@@ -525,7 +525,6 @@ class TrackLocalVisualizer(Visualizer):
             image: np.ndarray,
             data_sample: DetDataSample = None,
             draw_gt: bool = True,
-            rescale: bool = True,
             draw_pred: bool = True,
             show: bool = False,
             wait_time: int = 0,
@@ -551,8 +550,6 @@ class TrackLocalVisualizer(Visualizer):
                 Defaults to None.
             draw_gt (bool): Whether to draw GT TrackDataSample.
                 Default to True.
-            rescale (bool): Whether to rescale GT TrackDataSample.
-                Default to True.
             draw_pred (bool): Whether to draw Prediction TrackDataSample.
                 Defaults to True.
             show (bool): Whether to display the drawn image. Default to False.
@@ -570,11 +567,6 @@ class TrackLocalVisualizer(Visualizer):
 
         if draw_gt and data_sample is not None:
             assert 'gt_instances' in data_sample
-            assert 'scale_factor' in data_sample
-            if rescale:
-                scale_factor = [1 / s for s in data_sample.scale_factor]
-                data_sample.gt_instances.bboxes = scale_boxes(
-                    data_sample.gt_instances.bboxes, scale_factor)
             gt_img_data = self._draw_instances(image, data_sample.gt_instances)
 
         if draw_pred and data_sample is not None:

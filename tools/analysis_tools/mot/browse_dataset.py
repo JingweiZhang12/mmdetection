@@ -4,10 +4,9 @@ import os.path as osp
 
 import mmengine
 from mmengine import Config, DictAction
+from mmengine.registry import init_default_scope
 
 from mmdet.registry import DATASETS, VISUALIZERS
-from mmdet.utils import register_all_modules
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Browse a dataset')
@@ -43,15 +42,14 @@ def main():
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
 
-    # register all modules in mmtrack into the registries
-    register_all_modules(init_default_scope=True)
-
+    init_default_scope(cfg.get('default_scope', 'mmdet'))
+    
     dataset = DATASETS.build(cfg.train_dataloader.dataset)
 
     visualizer = VISUALIZERS.build(cfg.visualizer)
     visualizer.dataset_meta = dataset.metainfo
 
-    progress_bar = mmengine.ProgressBar(dataset.num_all_imgs)
+    progress_bar = mmengine.ProgressBar(len(dataset))
     for idx, item in enumerate(dataset):  # inputs data_samples
         data_sample = item['data_samples']
         input = item['inputs']
@@ -68,7 +66,6 @@ def main():
                 osp.basename(img_path),
                 img,
                 data_sample=img_data_sample,
-                rescale=False,
                 draw_pred=False,
                 show=args.show,
                 wait_time=args.show_interval,

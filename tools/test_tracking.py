@@ -89,6 +89,8 @@ def main():
         load_checkpoint(model.detector, args.detector)
 
     if args.reid:
+        assert (args.checkpoint is not None) or (args.detector is not None), \
+             'Error: checkpoint and detector checkpoint cannot both not exist' 
         assert not (args.checkpoint and args.reid), \
              'Error: checkpoint and reid checkpoint cannot both exist'
         load_checkpoint(model.reid, args.reid)

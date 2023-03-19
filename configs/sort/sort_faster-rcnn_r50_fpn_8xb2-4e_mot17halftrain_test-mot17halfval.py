@@ -5,7 +5,7 @@ _base_ = [
 
 default_hooks = dict(
     logger=dict(type='LoggerHook', interval=1),
-    visualization=dict(type='TrackVisualizationHook', draw=False))
+    visualization=dict(type='TrackVisualizationHook', draw=True))
 
 vis_backends = [dict(type='LocalVisBackend')]
 visualizer = dict(
